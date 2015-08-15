@@ -237,28 +237,15 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
 
 - (void)verifyCredentialsWithUserSuccessBlock:(void(^)(NSString *username, NSString *userID))successBlock errorBlock:(void(^)(NSError *error))errorBlock {
     
-    __weak typeof(self) weakSelf = self;
-    
     [_oauth verifyCredentialsLocallyWithSuccessBlock:^(NSString *username, NSString *userID) {
         
-        __strong typeof(self) strongSelf = weakSelf;
-        if(strongSelf == nil) {
-            errorBlock(nil);
-            return;
-        }
-        
-        if(username) [strongSelf setUserName:username];
-        if(userID) [strongSelf setUserID:userID];
+        if(username) [self setUserName:username];
+        if(userID) [self setUserID:userID];
         
         [_oauth verifyCredentialsRemotelyWithSuccessBlock:^(NSString *username, NSString *userID) {
             
-            if(strongSelf == nil) {
-                errorBlock(nil);
-                return;
-            }
-            
-            [strongSelf setUserName:username];
-            [strongSelf setUserID:userID];
+            [self setUserName:username];
+            [self setUserID:userID];
             
             successBlock(username, userID);
         } errorBlock:^(NSError *error) {
@@ -606,21 +593,15 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
 
                                              errorBlock:(void(^)(NSError *error))errorBlock {
     
-    __weak typeof(self) weakSelf = self;
-    
     return [self getUserInformationFor:screenName
                           successBlock:^(NSDictionary *response) {
-                              
-                              typeof(self) strongSelf = weakSelf;
-                              
-                              if(strongSelf == nil) return;
                               
                               NSString *imageURLString = [response objectForKey:@"profile_image_url"];
                               
                               STHTTPRequest *r = [STHTTPRequest requestWithURLString:imageURLString];
                               __weak STHTTPRequest *wr = r;
                               
-                              r.timeoutSeconds = strongSelf.oauth.timeoutInSeconds;
+                              r.timeoutSeconds = self.oauth.timeoutInSeconds;
                               
                               r.completionBlock = ^(NSDictionary *headers, NSString *body) {
                                   
@@ -4409,17 +4390,9 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
         
         //NSLog(@"-- SEGMENT INDEX %lu, SUBDATA %@", segmentIndex, NSStringFromRange(subDataRange));
         
-        __weak typeof(self) weakSelf = self;
-        
         dispatch_group_enter(group);
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         
-            __strong typeof(weakSelf) strongSelf = weakSelf;
-            if(strongSelf == nil) {
-                lastErrorReceived = [NSError errorWithDomain:@"STTwitter" code:9999 userInfo:nil]; // TODO: improve
-                return;
-            }
-            
             NSMutableDictionary *md = [NSMutableDictionary dictionary];
             md[@"command"] = @"APPEND";
             md[@"media_id"] = mediaID;
@@ -4430,7 +4403,7 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
             
             //NSLog(@"-- POST %@", [md valueForKey:@"segment_index"]);
             
-            [strongSelf postResource:@"media/upload.json"
+            [self postResource:@"media/upload.json"
                  baseURLString:kBaseURLStringUpload_1_1
                     parameters:md
            uploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
@@ -4510,29 +4483,15 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
                                  successBlock:(void(^)(NSString *mediaID, NSString *size, NSString *expiresAfter, NSString *videoType))successBlock
                                    errorBlock:(void(^)(NSError *error))errorBlock {
     
-    __weak typeof(self) weakSelf = self;
-    
     [self postMediaUploadINITWithVideoURL:videoURL
                              successBlock:^(NSString *mediaID, NSString *expiresAfterSecs) {
                                  
-                                 __strong typeof(self) strongSelf = weakSelf;
-                                 if(strongSelf == nil) {
-                                     errorBlock(nil);
-                                     return;
-                                 }
-                                 
-                                 [strongSelf postMediaUploadAPPENDWithVideoURL:videoURL
+                                 [self postMediaUploadAPPENDWithVideoURL:videoURL
                                                                        mediaID:mediaID
                                                            uploadProgressBlock:uploadProgressBlock
                                                                   successBlock:^(id response) {
                                                                       
-                                                                      __strong typeof(self) strongSelf2 = weakSelf;
-                                                                      if(strongSelf2 == nil) {
-                                                                          errorBlock(nil);
-                                                                          return;
-                                                                      }
-                                                                      
-                                                                      [strongSelf2 postMediaUploadFINALIZEWithMediaID:mediaID
+                                                                      [self postMediaUploadFINALIZEWithMediaID:mediaID
                                                                                                          successBlock:successBlock
                                                                                                            errorBlock:errorBlock];
                                                                   } errorBlock:errorBlock];

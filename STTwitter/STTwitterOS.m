@@ -72,8 +72,7 @@
 
 - (void)verifyCredentialsRemotelyWithSuccessBlock:(void(^)(NSString *username, NSString *userID))successBlock
                                        errorBlock:(void(^)(NSError *error))errorBlock {
-    __weak typeof(self) weakSelf = self;
-    
+	
     [self fetchResource:@"account/verify_credentials.json"
              HTTPMethod:@"GET"
           baseURLString:@"https://api.twitter.com/1.1"
@@ -89,9 +88,6 @@
                    return;
                }
                
-               typeof(self) strongSelf = weakSelf;
-               if(strongSelf == nil) return;
-
                NSDictionary *dict = response;
                successBlock(dict[@"screen_name"], dict[@"id_str"]);
            } errorBlock:^(NSObject<STTwitterRequestProtocol> *request, NSDictionary *requestHeaders, NSDictionary *responseHeaders, NSError *error) {
@@ -146,14 +142,8 @@
         return;
     }
 
-    __weak typeof(self) weakSelf = self;
-
     ACAccountStoreRequestAccessCompletionHandler accountStoreRequestCompletionHandler = ^(BOOL granted, NSError *error) {
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            
-            typeof(self) strongSelf = weakSelf;
-
-            if(strongSelf == nil) return;
             
             if(granted == NO) {
                 
@@ -163,13 +153,13 @@
                 }
                 
                 NSString *message = @"User denied access to their account(s).";
-                NSError *grantError = [NSError errorWithDomain:NSStringFromClass([strongSelf class]) code:STTwitterOSUserDeniedAccessToTheirAccounts userInfo:@{NSLocalizedDescriptionKey : message}];
+                NSError *grantError = [NSError errorWithDomain:NSStringFromClass([self class]) code:STTwitterOSUserDeniedAccessToTheirAccounts userInfo:@{NSLocalizedDescriptionKey : message}];
                 errorBlock(grantError);
                 return;
             }
             
-            if(strongSelf.account == nil) {
-                NSArray *accounts = [strongSelf.accountStore accountsWithAccountType:accountType];
+            if(self.account == nil) {
+                NSArray *accounts = [self.accountStore accountsWithAccountType:accountType];
                 
                 // ignore accounts that have no indentifier
                 // possible workaround for accounts with no password stored
@@ -188,15 +178,15 @@
                 
                 if([accountsWithIdentifiers count] == 0) {
                     NSString *message = @"No Twitter account available.";
-                    NSError *error = [NSError errorWithDomain:NSStringFromClass([strongSelf class]) code:STTwitterOSNoTwitterAccountIsAvailable userInfo:@{NSLocalizedDescriptionKey : message}];
+                    NSError *error = [NSError errorWithDomain:NSStringFromClass([self class]) code:STTwitterOSNoTwitterAccountIsAvailable userInfo:@{NSLocalizedDescriptionKey : message}];
                     errorBlock(error);
                     return;
                 }
                 
-                strongSelf.account = [accountsWithIdentifiers firstObject];
+                self.account = [accountsWithIdentifiers firstObject];
             }
             
-            successBlock(strongSelf.account.username, [strongSelf.account st_userID]);
+            successBlock(self.account.username, [self.account st_userID]);
         }];
     };
     
