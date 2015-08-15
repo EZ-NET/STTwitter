@@ -111,8 +111,6 @@
 - (void)verifyCredentialsRemotelyWithSuccessBlock:(void(^)(NSString *username, NSString *userID))successBlock
                                        errorBlock:(void(^)(NSError *error))errorBlock {
     
-    __weak typeof(self) weakSelf = self;
-    
     [self postResource:@"oauth2/token"
          baseURLString:@"https://api.twitter.com"
             parameters:@{ @"grant_type" : @"client_credentials" }
@@ -121,26 +119,22 @@
  downloadProgressBlock:nil
           successBlock:^(id request, NSDictionary *requestHeaders, NSDictionary *responseHeaders, id json) {
               
-              typeof(self) strongSelf = weakSelf;
-              
-              if(strongSelf == nil) return;
-              
               if([json isKindOfClass:[NSDictionary class]] == NO) {
-                  NSError *error = [NSError errorWithDomain:NSStringFromClass([strongSelf class]) code:STTwitterAppOnlyCannotFindJSONInResponse userInfo:@{NSLocalizedDescriptionKey : @"Cannot find JSON dictionary in response"}];
+                  NSError *error = [NSError errorWithDomain:NSStringFromClass([self class]) code:STTwitterAppOnlyCannotFindJSONInResponse userInfo:@{NSLocalizedDescriptionKey : @"Cannot find JSON dictionary in response"}];
                   errorBlock(error);
                   return;
               }
               
               NSString *tokenType = [json valueForKey:@"token_type"];
               if([tokenType isEqualToString:@"bearer"] == NO) {
-                  NSError *error = [NSError errorWithDomain:NSStringFromClass([strongSelf class]) code:STTwitterAppOnlyCannotFindBearerTokenInResponse userInfo:@{NSLocalizedDescriptionKey : @"Cannot find bearer token in server response"}];
+                  NSError *error = [NSError errorWithDomain:NSStringFromClass([self class]) code:STTwitterAppOnlyCannotFindBearerTokenInResponse userInfo:@{NSLocalizedDescriptionKey : @"Cannot find bearer token in server response"}];
                   errorBlock(error);
                   return;
               }
               
-              strongSelf.bearerToken = [json valueForKey:@"access_token"];
+              self.bearerToken = [json valueForKey:@"access_token"];
               
-              successBlock(strongSelf.bearerToken, nil);
+              successBlock(self.bearerToken, nil);
               
           } errorBlock:^(id request, NSDictionary *requestHeaders, NSDictionary *responseHeaders, NSError *error) {
               errorBlock(error);
