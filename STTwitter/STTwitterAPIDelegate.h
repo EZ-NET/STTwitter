@@ -10,12 +10,16 @@
 #import "STTwitterAPI.h"
 
 @class STTwitterAPI;
+@class STTwitterOS;
 @class ACAccountStore;
 
 @protocol STTwitterAPIDelegate <NSObject>
 
 @optional
 
-- (void)twitterAPI:(STTwitterAPI*)api OSAccountStoreDidChange:(ACAccountStore*)accountStore;
+/// This method called when received ACAccountStoreDidChangeNotification using authentication supplied by OS.
+/// You return whether the current oauth shuld be disable.
+/// If you don't implement the delegate method, It is assumed that it returns YES.
+- (BOOL)twitterAPI:(STTwitterAPI*)api shouldDisableCurrentOAuth:(STTwitterOS*)oauth accountStore:(ACAccountStore*)accountStore;
 
 @end
