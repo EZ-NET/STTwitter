@@ -44,12 +44,13 @@ static NSDateFormatter *dateFormatter = nil;
         
         if([strongSelf.oauth isKindOfClass:[STTwitterOS class]]) {
 			
-			if ([self.delegate respondsToSelector:@selector(twitterAPI:OSAccountStoreDidChange:)]) {
-				[self.delegate twitterAPI:strongSelf OSAccountStoreDidChange:note.object];
+			BOOL shouldReset = YES;
+			
+			if ([self.delegate respondsToSelector:@selector(twitterAPI:shouldDisableCurrentOAuth:accountStore:)]) {
+				shouldReset = [self.delegate twitterAPI:self shouldDisableCurrentOAuth:(STTwitterOS*)self.oauth accountStore:note.object];
 			}
-			else {
-				strongSelf.oauth = nil;
-			}
+			
+			if (shouldReset) strongSelf.oauth = nil;
         }
     }];
     
